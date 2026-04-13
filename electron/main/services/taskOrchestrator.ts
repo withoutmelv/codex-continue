@@ -16,9 +16,9 @@ type RoundResult = {
 };
 
 type TaskOrchestratorDeps = {
-  launchTerminal: (input: RunInput) => Promise<{ terminalBinding: string }>;
+  launchTerminal: (input: RunInput) => Promise<{ terminalBinding: string | null }>;
   enqueueRound: (
-    input: RunInput & { roundNumber: number; terminalBinding: string },
+    input: RunInput & { roundNumber: number; terminalBinding: string | null },
   ) => Promise<RoundResult>;
   updateTaskStatus: (taskId: string, status: string) => Promise<void>;
   recordRound: (input: {

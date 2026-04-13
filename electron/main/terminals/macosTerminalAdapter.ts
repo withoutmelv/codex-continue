@@ -4,15 +4,31 @@ import {
 } from './terminalAdapter';
 
 export class MacOsTerminalAdapter implements TerminalAdapter {
-  buildLaunchCommand(input: TerminalLaunchInput) {
-    const escapedRunnerCommand = input.runnerCommand.replace(/"/g, '\\"');
-
+  buildOpenTerminalCommand(_input: TerminalLaunchInput) {
     return {
       command: 'osascript',
       args: [
         '-e',
-        `tell application "Terminal" to do script "cd ${input.cwd} && ${escapedRunnerCommand}"`,
+        'tell application "Terminal" to do script ""',
       ],
     };
+  }
+
+  buildExecuteCommand(binding: string | null, shellCommand: string) {
+    const escapedShellCommand = shellCommand.replace(/"/g, '\\"');
+    return {
+      command: 'osascript',
+      args: [
+        '-e',
+        binding
+          ? `tell application "Terminal" to do script "${escapedShellCommand}" in ${binding}`
+          : `tell application "Terminal" to do script "${escapedShellCommand}"`,
+      ],
+    };
+  }
+
+  parseTerminalBinding(stdout: string) {
+    const trimmed = stdout.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 }

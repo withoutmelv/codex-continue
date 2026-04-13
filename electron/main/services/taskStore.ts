@@ -133,7 +133,7 @@ export class TaskStore {
       .run(status, Date.now(), taskId);
   }
 
-  setTerminalBinding(taskId: string, terminalBinding: string) {
+  setTerminalBinding(taskId: string, terminalBinding: string | null) {
     this.db
       .prepare(`
         update managed_tasks

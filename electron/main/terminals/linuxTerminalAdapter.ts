@@ -4,10 +4,21 @@ import {
 } from './terminalAdapter';
 
 export class LinuxTerminalAdapter implements TerminalAdapter {
-  buildLaunchCommand(input: TerminalLaunchInput) {
+  buildOpenTerminalCommand(input: TerminalLaunchInput) {
     return {
       command: 'x-terminal-emulator',
-      args: ['-e', 'sh', '-lc', `cd "${input.cwd}" && ${input.runnerCommand}`],
+      args: ['-e', 'sh', '-lc', `cd "${input.cwd}" && exec "$SHELL"`],
     };
+  }
+
+  buildExecuteCommand(_binding: string | null, shellCommand: string) {
+    return {
+      command: 'x-terminal-emulator',
+      args: ['-e', 'sh', '-lc', shellCommand],
+    };
+  }
+
+  parseTerminalBinding(_stdout: string) {
+    return null;
   }
 }

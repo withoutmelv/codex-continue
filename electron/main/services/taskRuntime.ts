@@ -3,10 +3,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { app } from 'electron';
 import { createTerminalAdapter } from '../terminals/factory';
+import { buildRoundShellCommand } from './buildRoundShellCommand';
 import { parseCodexRound } from './codexEventParser';
-import { writeRoundRequest, writeStopSignal } from './taskDirectories';
+import { ensureTaskDirectories } from './taskDirectories';
 import { TaskOrchestrator } from './taskOrchestrator';
 import { TaskStore } from './taskStore';
 
@@ -30,48 +30,62 @@ export class TaskRuntime {
     const taskDir = path.join(os.tmpdir(), 'codex-continue', input.taskId);
     const adapter = createTerminalAdapter();
     const appRoot = process.cwd();
-    const runnerEntry = app.isPackaged
-      ? path.join(process.resourcesPath, 'dist-electron', 'runner', 'terminalRunner.js')
-      : path.join(appRoot, 'electron', 'runner', 'terminalRunner.ts');
-    const runnerCommand = app.isPackaged
-      ? `node "${runnerEntry}" --task-dir "${taskDir}"`
-      : `pnpm exec tsx "${runnerEntry}" --task-dir "${taskDir}"`;
-    const launchSpec = adapter.buildLaunchCommand({
+    ensureTaskDirectories(taskDir);
+
+    const launchSpec = adapter.buildOpenTerminalCommand({
       taskId: input.taskId,
       cwd: appRoot,
-      runnerCommand,
     });
 
     const orchestrator = new TaskOrchestrator({
       launchTerminal: async () => {
-        await execFileAsync(launchSpec.command, launchSpec.args);
-        this.store.setTerminalBinding(input.taskId, taskDir);
-        return { terminalBinding: taskDir };
+        const { stdout } = await execFileAsync(launchSpec.command, launchSpec.args);
+        const terminalBinding = adapter.parseTerminalBinding(stdout);
+        this.store.setTerminalBinding(input.taskId, terminalBinding);
+        return { terminalBinding };
       },
       enqueueRound: async ({ roundNumber, terminalBinding, ...roundInput }) => {
-        writeRoundRequest(terminalBinding, {
-          roundNumber,
+        const startedAt = Date.now();
+        const outputFile = path.join(taskDir, 'results', `${roundNumber}.output.log`);
+        const exitCodeFile = path.join(taskDir, 'results', `${roundNumber}.exit.txt`);
+        const doneFile = path.join(taskDir, 'results', `${roundNumber}.done`);
+        const pidFile = path.join(taskDir, 'results', `${roundNumber}.pid`);
+        const shellCommand = buildRoundShellCommand({
           sessionId: roundInput.sessionId,
           cwd: roundInput.cwd,
           fixedPrompt: roundInput.fixedPrompt,
-          timeoutMs: roundInput.perRoundTimeoutMs,
+          outputFile,
+          exitCodeFile,
+          doneFile,
+          pidFile,
         });
+        const executeSpec = adapter.buildExecuteCommand(terminalBinding, shellCommand);
+        await execFileAsync(executeSpec.command, executeSpec.args);
 
-        const resultPath = path.join(terminalBinding, 'results', `${roundNumber}.json`);
-        while (!fs.existsSync(resultPath)) {
+        const deadline = Date.now() + roundInput.perRoundTimeoutMs;
+        while (!fs.existsSync(doneFile)) {
+          if (Date.now() > deadline) {
+            if (fs.existsSync(pidFile)) {
+              const pid = Number(fs.readFileSync(pidFile, 'utf8'));
+              if (!Number.isNaN(pid)) {
+                process.kill(pid, 'SIGTERM');
+              }
+            }
+            break;
+          }
           await new Promise((resolve) => setTimeout(resolve, 250));
         }
 
-        const raw = JSON.parse(fs.readFileSync(resultPath, 'utf8')) as {
-          exitCode: number;
-          durationMs: number;
-          output: string;
-        };
+        const output = fs.existsSync(outputFile) ? fs.readFileSync(outputFile, 'utf8') : '';
+        const exitCode = fs.existsSync(exitCodeFile)
+          ? Number(fs.readFileSync(exitCodeFile, 'utf8'))
+          : 1;
+        const durationMs = Date.now() - startedAt;
 
         return parseCodexRound({
-          lines: raw.output.split(/\r?\n/).filter(Boolean),
-          exitCode: raw.exitCode,
-          durationMs: raw.durationMs,
+          lines: output.split(/\r?\n/).filter(Boolean),
+          exitCode,
+          durationMs,
         });
       },
       updateTaskStatus: async (taskId, status) => {
@@ -102,7 +116,24 @@ export class TaskRuntime {
 
   async stopTask(taskId: string) {
     const taskDir = path.join(os.tmpdir(), 'codex-continue', taskId);
-    writeStopSignal(taskDir);
+    const resultsDir = path.join(taskDir, 'results');
+    const latestPidFile = fs.existsSync(resultsDir)
+      ? fs
+          .readdirSync(resultsDir, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && entry.name.endsWith('.pid'))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .at(-1)
+      : undefined;
+
+    if (latestPidFile) {
+      const pid = Number(
+        fs.readFileSync(path.join(resultsDir, latestPidFile.name), 'utf8'),
+      );
+      if (!Number.isNaN(pid)) {
+        process.kill(pid, 'SIGTERM');
+      }
+    }
+
     this.activeOrchestrators.get(taskId)?.stop(taskId);
     this.store.markStopped(taskId);
   }
