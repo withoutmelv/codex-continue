@@ -3,8 +3,10 @@ import { SessionList } from '../features/sessions/SessionList';
 import { SessionTranscriptPanel } from '../features/sessions/SessionTranscriptPanel';
 import { formatSessionTimestamp } from '../features/sessions/formatSessionTimestamp';
 import { TaskConfigForm } from '../features/tasks/TaskConfigForm';
+import { TaskHistoryPanel } from '../features/tasks/TaskHistoryPanel';
 import {
   getSessionTranscript,
+  getTaskSnapshot,
   listSessions,
   listTasks,
   startTask,
@@ -12,6 +14,7 @@ import {
 } from '../lib/electronApi';
 import {
   type ManagedTask,
+  type TaskSnapshotResponse,
   type SessionSummary,
   type SessionTranscriptEntry,
 } from '../shared/schemas';
@@ -32,6 +35,9 @@ const copyByLocale = {
     managedTaskControl: 'Managed Task Control',
     transcriptHeading: 'Conversation History',
     transcriptEmpty: 'No transcript available for this session.',
+    taskHistoryHeading: 'Managed Task History',
+    taskHistoryEmpty: 'No managed task history available yet.',
+    taskHistoryNoRounds: 'No stored round details for this task.',
     fixedPrompt: 'Fixed Prompt',
     sendCount: 'Send Count',
     perRoundTimeout: 'Per-Round Timeout',
@@ -71,6 +77,9 @@ const copyByLocale = {
     managedTaskControl: '自动托管设置',
     transcriptHeading: '对话记录',
     transcriptEmpty: '当前会话没有可展示的记录。',
+    taskHistoryHeading: '托管历史',
+    taskHistoryEmpty: '当前还没有可展示的托管记录。',
+    taskHistoryNoRounds: '当前任务还没有可展示的轮次详情。',
     fixedPrompt: '固定指令',
     sendCount: '发送次数',
     perRoundTimeout: '单轮超时',
@@ -101,6 +110,11 @@ const copyByLocale = {
 
 const terminalTaskStates = new Set(['Completed', 'Stopped', 'Failed']);
 
+function getProjectName(cwd: string) {
+  const segments = cwd.split(/[\\/]/).filter(Boolean);
+  return segments.at(-1) ?? cwd;
+}
+
 function getStatusDetailText(
   task: ManagedTask | null,
   copy: (typeof copyByLocale)[Locale],
@@ -122,6 +136,13 @@ export default function App() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState('Idle');
   const [taskStatusDetail, setTaskStatusDetail] = useState('');
+  const [detailTab, setDetailTab] = useState<'transcript' | 'history'>('transcript');
+  const [historyTasks, setHistoryTasks] = useState<ManagedTask[]>([]);
+  const [selectedHistoryTaskId, setSelectedHistoryTaskId] = useState<string | null>(
+    null,
+  );
+  const [selectedHistorySnapshot, setSelectedHistorySnapshot] =
+    useState<TaskSnapshotResponse | null>(null);
   const [locale, setLocale] = useState<Locale>('zh');
   const [transcriptEntries, setTranscriptEntries] = useState<SessionTranscriptEntry[]>([]);
   const [fixedPrompt, setFixedPrompt] = useState('我要出去了，按照你的建议继续做');
@@ -195,6 +216,52 @@ export default function App() {
       }
     };
   }, [activeTaskId, copy]);
+
+  useEffect(() => {
+    if (detailTab !== 'history') {
+      return;
+    }
+
+    let cancelled = false;
+
+    void listTasks().then((tasks) => {
+      if (cancelled) {
+        return;
+      }
+
+      setHistoryTasks(tasks);
+      setSelectedHistoryTaskId((current) => {
+        if (current && tasks.some((task) => task.taskId === current)) {
+          return current;
+        }
+
+        return tasks[0]?.taskId ?? null;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detailTab]);
+
+  useEffect(() => {
+    if (detailTab !== 'history' || !selectedHistoryTaskId) {
+      setSelectedHistorySnapshot(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    void getTaskSnapshot(selectedHistoryTaskId).then((snapshot) => {
+      if (!cancelled) {
+        setSelectedHistorySnapshot(snapshot);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detailTab, selectedHistoryTaskId]);
 
   async function handleStart() {
     if (!selectedSession) {
@@ -290,11 +357,56 @@ export default function App() {
             onStart={handleStart}
             onStop={handleStop}
           />
-          <SessionTranscriptPanel
-            heading={copy.transcriptHeading}
-            emptyText={copy.transcriptEmpty}
-            entries={transcriptEntries}
-          />
+          <section className="surface-card detail-panel" data-testid="detail-panel">
+            <div
+              className="detail-panel-tabs"
+              role="tablist"
+              aria-label="Task Detail Tabs"
+            >
+              <button
+                type="button"
+                className={
+                  detailTab === 'transcript' ? 'detail-tab active' : 'detail-tab'
+                }
+                onClick={() => setDetailTab('transcript')}
+              >
+                {copy.transcriptHeading}
+              </button>
+              <button
+                type="button"
+                className={detailTab === 'history' ? 'detail-tab active' : 'detail-tab'}
+                onClick={() => setDetailTab('history')}
+              >
+                {copy.taskHistoryHeading}
+              </button>
+            </div>
+
+            {detailTab === 'transcript' ? (
+              <SessionTranscriptPanel
+                heading={copy.transcriptHeading}
+                emptyText={copy.transcriptEmpty}
+                entries={transcriptEntries}
+                nested
+              />
+            ) : (
+              <TaskHistoryPanel
+                tasks={historyTasks}
+                selectedTaskId={selectedHistoryTaskId}
+                rounds={selectedHistorySnapshot?.rounds ?? []}
+                emptyText={copy.taskHistoryEmpty}
+                noRoundsText={copy.taskHistoryNoRounds}
+                locale={locale}
+                onSelectTask={setSelectedHistoryTaskId}
+                formatTaskTitle={getProjectName}
+                formatTaskUpdatedAt={formatSessionTimestamp}
+                formatTaskStatus={(task) =>
+                  getStatusDetailText(task, copy) ||
+                  copy.taskStates[task.status as keyof typeof copy.taskStates] ||
+                  task.status
+                }
+              />
+            )}
+          </section>
         </div>
       </section>
     </main>

@@ -26,7 +26,8 @@ describe('MVP layout', () => {
     expect(screen.getByRole('button', { name: '中文' })).toBeInTheDocument();
     expect(screen.getByText(/当前状态/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /停止/i })).toBeInTheDocument();
-    expect(screen.getByText(/对话记录/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /对话记录/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /托管历史/i })).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: /任务状态/i }),
     ).not.toBeInTheDocument();

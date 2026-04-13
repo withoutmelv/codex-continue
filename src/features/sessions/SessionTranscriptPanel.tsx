@@ -4,11 +4,17 @@ type SessionTranscriptPanelProps = {
   heading: string;
   emptyText: string;
   entries: SessionTranscriptEntry[];
+  nested?: boolean;
 };
 
 export function SessionTranscriptPanel(props: SessionTranscriptPanelProps) {
   return (
-    <section className="surface-card transcript-panel" data-testid="transcript-panel">
+    <section
+      className={
+        props.nested ? 'transcript-panel transcript-panel-nested' : 'surface-card transcript-panel'
+      }
+      data-testid="transcript-panel"
+    >
       <div className="transcript-header">
         <h2>{props.heading}</h2>
       </div>
