@@ -64,6 +64,8 @@ export class TaskRuntime {
 
         const raw = JSON.parse(fs.readFileSync(resultPath, 'utf8')) as {
           exitCode: number;
+          timedOut?: boolean;
+          stopped?: boolean;
           durationMs: number;
           output: string;
         };
@@ -71,6 +73,8 @@ export class TaskRuntime {
         return parseCodexRound({
           lines: raw.output.split(/\r?\n/).filter(Boolean),
           exitCode: raw.exitCode,
+          timedOut: raw.timedOut,
+          stopped: raw.stopped,
           durationMs: raw.durationMs,
         });
       },
@@ -95,6 +99,9 @@ export class TaskRuntime {
 
     try {
       await orchestrator.run(input);
+    } catch (error) {
+      this.store.markFailed(input.taskId, 'runtime_error');
+      throw error;
     } finally {
       this.activeOrchestrators.delete(input.taskId);
     }

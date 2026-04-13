@@ -49,4 +49,19 @@ describe('parseCodexRound', () => {
     expect(result.completed).toBe(false);
     expect(result.resultType).toBe('process_error');
   });
+
+  it('surfaces timed out rounds separately from generic process errors', () => {
+    const result = parseCodexRound({
+      lines: [
+        '{"type":"thread.started","thread_id":"1"}',
+        '{"type":"turn.started"}',
+      ],
+      exitCode: 1,
+      durationMs: 60_000,
+      timedOut: true,
+    } as Parameters<typeof parseCodexRound>[0]);
+
+    expect(result.completed).toBe(false);
+    expect(result.resultType).toBe('timed_out');
+  });
 });

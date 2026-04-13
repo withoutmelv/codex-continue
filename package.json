@@ -5,7 +5,9 @@
   "main": "dist-electron/index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm run dev:desktop",
+    "dev:web": "vite",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
     "build": "vite build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest",

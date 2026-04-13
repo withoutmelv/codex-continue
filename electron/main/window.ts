@@ -6,9 +6,11 @@ export function resolvePreloadPath(baseDir: string, _isDev: boolean) {
 }
 
 export function resolveRendererEntry(baseDir: string, isDev: boolean) {
-  return isDev
-    ? 'http://localhost:5173'
-    : path.join(baseDir, '../../dist/index.html');
+  if (isDev) {
+    return process.env.VITE_DEV_SERVER_URL ?? 'http://localhost:5173';
+  }
+
+  return path.join(baseDir, '../../dist/index.html');
 }
 
 export function createMainWindow(baseDir: string, isDev: boolean) {

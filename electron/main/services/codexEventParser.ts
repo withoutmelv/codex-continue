@@ -2,6 +2,8 @@ type ParseInput = {
   lines: string[];
   exitCode: number;
   durationMs: number;
+  timedOut?: boolean;
+  stopped?: boolean;
 };
 
 export function parseCodexRound(input: ParseInput) {
@@ -24,8 +26,13 @@ export function parseCodexRound(input: ParseInput) {
     }
   }
 
-  const resultType =
-    sawTurnCompleted && input.exitCode === 0 ? 'completed' : 'process_error';
+  const resultType = input.stopped
+    ? 'stopped'
+    : input.timedOut
+      ? 'timed_out'
+      : sawTurnCompleted && input.exitCode === 0
+        ? 'completed'
+        : 'process_error';
 
   return {
     completed: sawTurnCompleted && input.exitCode === 0,

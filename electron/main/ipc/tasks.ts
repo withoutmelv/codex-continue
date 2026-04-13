@@ -17,7 +17,9 @@ export function createTaskHandlers(deps: TaskHandlersDeps) {
   return {
     start: async (input: StartTaskInput) => {
       const { taskId } = await deps.createTask(input);
-      await deps.runTask({ ...input, taskId });
+      void deps.runTask({ ...input, taskId }).catch((error) => {
+        console.error(`Managed task ${taskId} failed to run`, error);
+      });
       return { taskId };
     },
     stop: async (taskId: string) => deps.stopTask(taskId),

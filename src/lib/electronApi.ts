@@ -1,6 +1,7 @@
 import {
   getSessionTranscriptResponseSchema,
   listSessionsResponseSchema,
+  listTasksResponseSchema,
   startTaskResponseSchema,
 } from '../shared/schemas';
 
@@ -61,8 +62,8 @@ export async function stopTask(taskId: string) {
 export async function listTasks() {
   const api = getElectronApi();
   if (!api) {
-    return [];
+    return listTasksResponseSchema.parse([]);
   }
 
-  return api.listTasks();
+  return listTasksResponseSchema.parse(await api.listTasks());
 }
