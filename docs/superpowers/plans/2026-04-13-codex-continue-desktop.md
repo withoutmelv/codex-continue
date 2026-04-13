@@ -85,8 +85,6 @@
 - Create: `vitest.config.ts`
 - Create: `vitest.setup.ts`
 - Create: `index.html`
-- Create: `src/main.tsx`
-- Create: `src/app/App.tsx`
 - Create: `src/styles/tokens.css`
 - Create: `src/styles/app.css`
 - Test: `tests/renderer/app-shell.test.tsx`
