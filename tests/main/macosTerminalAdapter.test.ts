@@ -6,13 +6,15 @@ describe('MacOsTerminalAdapter', () => {
     const spec = adapter.buildLaunchCommand({
       taskId: 'task-1',
       cwd: '/repo',
-      runnerCommand: 'node /app/terminalRunner.js --task-dir /tmp/task-1',
+      runnerCommand:
+        'pnpm exec tsx "/app/terminalRunner.js" --task-dir "/tmp/task-1"',
     });
 
     expect(spec.command).toBe('osascript');
     expect(spec.args[0]).toBe('-e');
     expect(spec.args[1]).toContain('Terminal');
     expect(spec.args[1]).toContain('terminalRunner.js');
-    expect(spec.args[1]).toContain('--task-dir /tmp/task-1');
+    expect(spec.args[1]).toContain('\\"/app/terminalRunner.js\\"');
+    expect(spec.args[1]).toContain('--task-dir \\"/tmp/task-1\\"');
   });
 });
