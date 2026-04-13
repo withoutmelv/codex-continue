@@ -67,9 +67,7 @@ export default function App() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState('Idle');
   const [locale, setLocale] = useState<Locale>('en');
-  const [fixedPrompt, setFixedPrompt] = useState(
-    'Continue the current task. End with STATUS: DONE, NEEDS_INPUT, BLOCKED, or RETRY.',
-  );
+  const [fixedPrompt, setFixedPrompt] = useState('我要出去了，按照你的建议继续做');
   const [sendCount, setSendCount] = useState(8);
   const [timeoutMinutes, setTimeoutMinutes] = useState(15);
   const copy = copyByLocale[locale];

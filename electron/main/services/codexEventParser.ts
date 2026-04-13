@@ -4,8 +4,6 @@ type ParseInput = {
   durationMs: number;
 };
 
-const statusPattern = /STATUS:\s*(DONE|NEEDS_INPUT|BLOCKED|RETRY)/i;
-
 export function parseCodexRound(input: ParseInput) {
   let sawTurnCompleted = false;
   let lastMessage = '';
@@ -26,12 +24,13 @@ export function parseCodexRound(input: ParseInput) {
     }
   }
 
-  const marker = lastMessage.match(statusPattern)?.[0] ?? 'unknown_result';
+  const resultType =
+    sawTurnCompleted && input.exitCode === 0 ? 'completed' : 'process_error';
 
   return {
     completed: sawTurnCompleted && input.exitCode === 0,
     exitCode: input.exitCode,
-    resultType: marker,
+    resultType,
     lastMessage,
     durationMs: input.durationMs,
   };
