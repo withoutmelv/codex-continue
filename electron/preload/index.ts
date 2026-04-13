@@ -1,3 +1,7 @@
-import { contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
-contextBridge.exposeInMainWorld('electronApi', {});
+const electronApi = {
+  listSessions: () => ipcRenderer.invoke('sessions:list'),
+};
+
+contextBridge.exposeInMainWorld('electronApi', electronApi);

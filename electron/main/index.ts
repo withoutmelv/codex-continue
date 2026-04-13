@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
+import { registerSessionHandlers } from './ipc/sessions';
 
 const isDev = !app.isPackaged;
 
@@ -20,4 +21,7 @@ function createWindow() {
   }
 }
 
-void app.whenReady().then(createWindow);
+void app.whenReady().then(() => {
+  registerSessionHandlers();
+  createWindow();
+});
