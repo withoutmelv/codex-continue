@@ -1,0 +1,8 @@
+:root {
+  --color-primary: #004ac6;
+  --color-primary-container: #2563eb;
+  --color-surface: #f7f9fb;
+  --color-on-surface: #191c1e;
+  --font-display: 'Manrope', 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}

@@ -1,0 +1,20 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+}
+
+.app-shell {
+  padding: 48px;
+}
+
+h1 {
+  font-family: var(--font-display);
+}
