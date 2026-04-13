@@ -1,28 +1,20 @@
 import { MacOsTerminalAdapter } from '../../electron/main/terminals/macosTerminalAdapter';
 
 describe('MacOsTerminalAdapter', () => {
-  it('builds osascript specs for opening and reusing a terminal tab', () => {
+  it('builds an osascript launch spec that preserves the runner command', () => {
     const adapter = new MacOsTerminalAdapter();
-    const openSpec = adapter.buildOpenTerminalCommand({
+    const spec = adapter.buildLaunchCommand({
       taskId: 'task-1',
       cwd: '/repo',
+      runnerCommand:
+        'pnpm exec tsx "/app/terminalRunner.js" --task-dir "/tmp/task-1"',
     });
-    const runSpec = adapter.buildExecuteCommand(
-      'tab 1 of window id 101',
-      'codex exec resume "session" "prompt" --json',
-    );
 
-    expect(openSpec.command).toBe('osascript');
-    expect(openSpec.args[0]).toBe('-e');
-    expect(openSpec.args[1]).toContain('do script ""');
-
-    expect(runSpec.command).toBe('osascript');
-    expect(runSpec.args[1]).toContain('Terminal');
-    expect(runSpec.args[1]).toContain('codex exec resume');
-    expect(runSpec.args[1]).toContain('in tab 1 of window id 101');
-
-    expect(adapter.parseTerminalBinding('tab 1 of window id 101\n')).toBe(
-      'tab 1 of window id 101',
-    );
+    expect(spec.command).toBe('osascript');
+    expect(spec.args[0]).toBe('-e');
+    expect(spec.args[1]).toContain('Terminal');
+    expect(spec.args[1]).toContain('terminalRunner.js');
+    expect(spec.args[1]).toContain('\\"/app/terminalRunner.js\\"');
+    expect(spec.args[1]).toContain('--task-dir \\"/tmp/task-1\\"');
   });
 });

@@ -1,6 +1,7 @@
 export interface TerminalLaunchInput {
   taskId: string;
   cwd: string;
+  runnerCommand: string;
 }
 
 export interface TerminalLaunchSpec {
@@ -9,10 +10,5 @@ export interface TerminalLaunchSpec {
 }
 
 export interface TerminalAdapter {
-  buildOpenTerminalCommand(input: TerminalLaunchInput): TerminalLaunchSpec;
-  buildExecuteCommand(
-    binding: string | null,
-    shellCommand: string,
-  ): TerminalLaunchSpec;
-  parseTerminalBinding(stdout: string): string | null;
+  buildLaunchCommand(input: TerminalLaunchInput): TerminalLaunchSpec;
 }

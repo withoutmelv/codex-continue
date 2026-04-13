@@ -4,21 +4,10 @@ import {
 } from './terminalAdapter';
 
 export class WindowsTerminalAdapter implements TerminalAdapter {
-  buildOpenTerminalCommand(input: TerminalLaunchInput) {
+  buildLaunchCommand(input: TerminalLaunchInput) {
     return {
       command: 'wt',
-      args: ['-d', input.cwd],
+      args: ['-d', input.cwd, 'pwsh', '-NoExit', '-Command', input.runnerCommand],
     };
-  }
-
-  buildExecuteCommand(_binding: string | null, shellCommand: string) {
-    return {
-      command: 'wt',
-      args: ['pwsh', '-NoExit', '-Command', shellCommand],
-    };
-  }
-
-  parseTerminalBinding(_stdout: string) {
-    return null;
   }
 }
