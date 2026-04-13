@@ -33,6 +33,33 @@ vi.mock('../../src/lib/electronApi', () => ({
   startTask: vi.fn().mockResolvedValue({ taskId: 'task-1' }),
   stopTask: vi.fn().mockResolvedValue(undefined),
   listTasks: vi.fn().mockResolvedValue([]),
+  getTaskSnapshot: vi.fn().mockResolvedValue({
+    task: {
+      taskId: 'task-1',
+      sessionId: '019d826a',
+      cwd: '/repo',
+      fixedPrompt: '我要出去了，按照你的建议继续做',
+      targetRounds: 8,
+      completedRounds: 0,
+      perRoundTimeoutMs: 900_000,
+      terminalBinding: '/tmp/task-1',
+      status: 'Failed',
+      lastExitCode: 1,
+      lastStatusText: 'timed_out',
+      startedAt: 1776069276,
+      updatedAt: 1776069276,
+    },
+    rounds: [
+      {
+        taskId: 'task-1',
+        roundNumber: 1,
+        exitCode: 1,
+        resultType: 'timed_out',
+        lastMessage: '我会继续处理这个任务。',
+        durationMs: 1000,
+      },
+    ],
+  }),
 }));
 
 describe('managed task flow', () => {
@@ -116,5 +143,34 @@ describe('managed task flow', () => {
       },
       { timeout: 2500 },
     );
+  });
+
+  it('keeps timeout detail visible in the managed task history tab', async () => {
+    listTasksMock.mockResolvedValue([
+      {
+        taskId: 'task-1',
+        sessionId: '019d826a',
+        cwd: '/repo',
+        fixedPrompt: '我要出去了，按照你的建议继续做',
+        targetRounds: 8,
+        completedRounds: 1,
+        perRoundTimeoutMs: 900_000,
+        terminalBinding: null,
+        status: 'Failed',
+        lastExitCode: 1,
+        lastStatusText: 'timed_out',
+        startedAt: 1776069276,
+        updatedAt: 1776069276,
+      },
+    ]);
+
+    render(<App />);
+
+    await screen.findByText(/^repo$/i);
+    fireEvent.click(screen.getByRole('button', { name: /托管历史/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/单轮超时/i)).toBeInTheDocument();
+    });
   });
 });
