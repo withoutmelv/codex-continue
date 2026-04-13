@@ -12,9 +12,163 @@ body {
 }
 
 .app-shell {
-  padding: 48px;
+  padding: 32px;
 }
 
 h1 {
   font-family: var(--font-display);
+}
+
+.azure-layout {
+  display: grid;
+  gap: 24px;
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 24px;
+  padding: 32px;
+  border-radius: var(--radius-shell);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(242, 244, 246, 0.9));
+}
+
+.hero-card,
+.surface-block,
+.surface-card {
+  background: var(--color-surface-card);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: 0 10px 18px rgba(25, 28, 30, 0.03);
+}
+
+.hero-number {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  color: var(--color-primary);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.hero-copy {
+  max-width: 56ch;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 24px;
+}
+
+.main-stack {
+  display: grid;
+  gap: 24px;
+}
+
+.session-list {
+  display: grid;
+  gap: 12px;
+}
+
+.session-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.session-card.selected {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
+}
+
+.session-card p,
+.session-card small,
+.surface-card p {
+  margin: 6px 0 0;
+}
+
+.field-grid,
+.status-grid,
+.button-row {
+  display: grid;
+  gap: 12px;
+}
+
+.field-grid {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 16px;
+}
+
+.button-row {
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  margin-top: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field textarea,
+.field input {
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: var(--color-surface-field);
+  font: inherit;
+  color: inherit;
+}
+
+.primary-button,
+.secondary-button {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button {
+  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+}
+
+.secondary-button {
+  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(195, 198, 215, 0.15);
+}
+
+.status-grid {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.terminal-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: var(--shadow-ambient);
+}
+
+.terminal-shell {
+  margin: 0;
+  padding: 18px;
+  min-height: 120px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(8, 23, 55, 0.94), rgba(15, 28, 62, 0.94));
+  color: rgba(239, 245, 255, 0.94);
+  overflow: auto;
 }
