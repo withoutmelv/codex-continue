@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { app } from 'electron';
 import { createTerminalAdapter } from '../terminals/factory';
@@ -10,7 +10,7 @@ import { writeRoundRequest, writeStopSignal } from './taskDirectories';
 import { TaskOrchestrator } from './taskOrchestrator';
 import { TaskStore } from './taskStore';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 type StartTaskInput = {
   taskId: string;
@@ -35,7 +35,7 @@ export class TaskRuntime {
     const runnerCommand = app.isPackaged
       ? `node "${runnerEntry}" --task-dir "${taskDir}"`
       : `pnpm exec tsx "${runnerEntry}" --task-dir "${taskDir}"`;
-    const launchCommand = adapter.buildLaunchCommand({
+    const launchSpec = adapter.buildLaunchCommand({
       taskId: input.taskId,
       cwd: input.cwd,
       runnerCommand,
@@ -43,7 +43,7 @@ export class TaskRuntime {
 
     const orchestrator = new TaskOrchestrator({
       launchTerminal: async () => {
-        await execAsync(launchCommand);
+        await execFileAsync(launchSpec.command, launchSpec.args);
         this.store.setTerminalBinding(input.taskId, taskDir);
         return { terminalBinding: taskDir };
       },

@@ -4,6 +4,11 @@ export interface TerminalLaunchInput {
   runnerCommand: string;
 }
 
+export interface TerminalLaunchSpec {
+  command: string;
+  args: string[];
+}
+
 export interface TerminalAdapter {
-  buildLaunchCommand(input: TerminalLaunchInput): string;
+  buildLaunchCommand(input: TerminalLaunchInput): TerminalLaunchSpec;
 }
