@@ -119,6 +119,33 @@ h1 {
   flex-shrink: 0;
 }
 
+.sidebar-meta {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sidebar-search {
+  display: grid;
+  gap: 6px;
+}
+
+.sidebar-search-label,
+.sidebar-sort-hint {
+  margin: 0;
+  color: rgba(25, 28, 30, 0.58);
+  font-size: 0.76rem;
+}
+
+.sidebar-search-input {
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--color-surface-field);
+  font: inherit;
+  color: inherit;
+}
+
 .session-list {
   display: grid;
   gap: 8px;

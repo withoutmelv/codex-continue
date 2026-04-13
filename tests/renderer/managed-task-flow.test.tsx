@@ -22,7 +22,7 @@ describe('managed task flow', () => {
   it('loads sessions and starts a managed task', async () => {
     render(<App />);
 
-    await screen.findByText(/continue desktop product planning/i);
+    await screen.findByText(/^repo$/i);
 
     fireEvent.change(screen.getByLabelText(/发送次数/i), {
       target: { value: '4' },

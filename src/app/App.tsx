@@ -136,6 +136,9 @@ export default function App() {
           heading={copy.sessionLibrary}
           emptyText={copy.sessionEmpty}
           refreshLabel={copy.refreshSessions}
+          sortHint={locale === 'zh' ? '按最近更新时间排序' : 'Sorted by most recent activity'}
+          searchLabel={locale === 'zh' ? '搜索项目' : 'Search projects'}
+          searchPlaceholder={locale === 'zh' ? '搜索项目名' : 'Search project name'}
           locale={locale}
           sessions={sessions}
           selectedSessionId={selectedSessionId}

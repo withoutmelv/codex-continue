@@ -20,6 +20,8 @@ describe('MVP layout', () => {
     expect(
       screen.getByRole('button', { name: /刷新会话/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /搜索项目/i })).toBeInTheDocument();
+    expect(screen.getByText(/按最近更新时间排序/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'EN' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '中文' })).toBeInTheDocument();
     expect(screen.getByText(/当前状态/i)).toBeInTheDocument();

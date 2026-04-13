@@ -13,6 +13,7 @@ describe('language toggle', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /自动托管/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /刷新会话/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /搜索项目/i })).toBeInTheDocument();
     expect(screen.getByText(/当前状态/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'EN' }));
@@ -23,6 +24,7 @@ describe('language toggle', () => {
     expect(
       screen.getByRole('button', { name: /auto host/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /search projects/i })).toBeInTheDocument();
     expect(screen.getByText(/current status/i)).toBeInTheDocument();
   });
 });
