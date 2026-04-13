@@ -11,6 +11,10 @@ export function parseCodexRound(input: ParseInput) {
   let lastMessage = '';
 
   for (const line of input.lines) {
+    if (!line.trim().startsWith('{')) {
+      continue;
+    }
+
     const event = JSON.parse(line);
 
     if (event.type === 'item.completed' && event.item?.type === 'agent_message') {
