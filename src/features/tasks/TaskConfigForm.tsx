@@ -1,4 +1,12 @@
 type TaskConfigFormProps = {
+  copy: {
+    managedTaskControl: string;
+    fixedPrompt: string;
+    sendCount: string;
+    perRoundTimeout: string;
+    autoHost: string;
+    refreshSessions: string;
+  };
   fixedPrompt: string;
   onFixedPromptChange: (value: string) => void;
   sendCount: number;
@@ -11,10 +19,10 @@ type TaskConfigFormProps = {
 
 export function TaskConfigForm(props: TaskConfigFormProps) {
   return (
-    <section className="surface-card">
-      <h2>Managed Task Control</h2>
+    <section className="surface-card task-control-panel">
+      <h2>{props.copy.managedTaskControl}</h2>
       <label className="field">
-        <span>Fixed Prompt</span>
+        <span>{props.copy.fixedPrompt}</span>
         <textarea
           value={props.fixedPrompt}
           onChange={(event) => props.onFixedPromptChange(event.target.value)}
@@ -22,17 +30,17 @@ export function TaskConfigForm(props: TaskConfigFormProps) {
       </label>
       <div className="field-grid">
         <label className="field">
-          <span>Send Count</span>
+          <span>{props.copy.sendCount}</span>
           <input
-            aria-label="Send Count"
+            aria-label={props.copy.sendCount}
             value={props.sendCount}
             onChange={(event) => props.onSendCountChange(Number(event.target.value))}
           />
         </label>
         <label className="field">
-          <span>Per-Round Timeout</span>
+          <span>{props.copy.perRoundTimeout}</span>
           <input
-            aria-label="Per-Round Timeout"
+            aria-label={props.copy.perRoundTimeout}
             value={props.timeoutMinutes}
             onChange={(event) =>
               props.onTimeoutMinutesChange(Number(event.target.value))
@@ -42,10 +50,10 @@ export function TaskConfigForm(props: TaskConfigFormProps) {
       </div>
       <div className="button-row">
         <button className="primary-button" onClick={props.onStart}>
-          Auto Host
+          {props.copy.autoHost}
         </button>
         <button className="secondary-button" onClick={props.onRefreshSessions}>
-          Refresh Sessions
+          {props.copy.refreshSessions}
         </button>
       </div>
     </section>
