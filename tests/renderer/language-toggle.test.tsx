@@ -15,6 +15,7 @@ describe('language toggle', () => {
     expect(screen.getByRole('button', { name: /刷新会话/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /搜索项目/i })).toBeInTheDocument();
     expect(screen.getByText(/当前状态/i)).toBeInTheDocument();
+    expect(screen.getByText(/对话记录/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'EN' }));
 
@@ -26,5 +27,6 @@ describe('language toggle', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /search projects/i })).toBeInTheDocument();
     expect(screen.getByText(/current status/i)).toBeInTheDocument();
+    expect(screen.getByText(/conversation history/i)).toBeInTheDocument();
   });
 });

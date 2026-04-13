@@ -16,6 +16,17 @@ export const startTaskResponseSchema = z.object({
   taskId: z.string(),
 });
 
+export const sessionTranscriptEntrySchema = z.object({
+  id: z.string(),
+  role: z.enum(['user', 'assistant']),
+  message: z.string(),
+  timestamp: z.string(),
+});
+
+export const getSessionTranscriptResponseSchema = z.object({
+  entries: z.array(sessionTranscriptEntrySchema),
+});
+
 export const managedTaskSchema = z.object({
   taskId: z.string(),
   sessionId: z.string(),
@@ -55,5 +66,9 @@ export const managedTaskRoundSchema = z.object({
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
 export type ListSessionsResponse = z.infer<typeof listSessionsResponseSchema>;
 export type StartTaskResponse = z.infer<typeof startTaskResponseSchema>;
+export type SessionTranscriptEntry = z.infer<typeof sessionTranscriptEntrySchema>;
+export type GetSessionTranscriptResponse = z.infer<
+  typeof getSessionTranscriptResponseSchema
+>;
 export type ManagedTask = z.infer<typeof managedTaskSchema>;
 export type ManagedTaskRound = z.infer<typeof managedTaskRoundSchema>;

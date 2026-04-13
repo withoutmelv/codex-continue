@@ -1,4 +1,5 @@
 import {
+  getSessionTranscriptResponseSchema,
   listSessionsResponseSchema,
   startTaskResponseSchema,
 } from '../shared/schemas';
@@ -7,6 +8,7 @@ declare global {
   interface Window {
     electronApi: {
       listSessions: () => Promise<unknown>;
+      getSessionTranscript: (rolloutPath: string) => Promise<unknown>;
       startTask: (input: unknown) => Promise<unknown>;
       stopTask: (taskId: string) => Promise<unknown>;
       listTasks: () => Promise<unknown>;
@@ -25,6 +27,17 @@ export async function listSessions() {
   }
 
   return listSessionsResponseSchema.parse(await api.listSessions());
+}
+
+export async function getSessionTranscript(rolloutPath: string) {
+  const api = getElectronApi();
+  if (!api) {
+    return getSessionTranscriptResponseSchema.parse({ entries: [] });
+  }
+
+  return getSessionTranscriptResponseSchema.parse(
+    await api.getSessionTranscript(rolloutPath),
+  );
 }
 
 export async function startTask(input: unknown) {

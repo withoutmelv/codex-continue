@@ -90,11 +90,12 @@ h1 {
 }
 
 .main-stack {
-  display: block;
+  display: grid;
+  gap: 20px;
 }
 
 .task-control-panel {
-  min-height: 420px;
+  min-height: 0;
 }
 
 .session-sidebar {
@@ -215,6 +216,23 @@ h1 {
   margin-top: 20px;
 }
 
+.task-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.task-panel-header h2 {
+  margin: 0;
+}
+
+.task-panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -251,6 +269,23 @@ h1 {
   box-shadow: inset 0 0 0 1px rgba(195, 198, 215, 0.15);
 }
 
+.danger-button {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #d94b63, #c6364f);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.danger-button:disabled,
+.secondary-button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+}
+
 .task-status-inline {
   display: flex;
   align-items: baseline;
@@ -269,6 +304,90 @@ h1 {
   font-size: 1rem;
 }
 
+.task-subtitle {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 18px;
+}
+
+.task-subtitle p {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.task-subtitle-label {
+  color: rgba(25, 28, 30, 0.58);
+  font-size: 0.8rem;
+}
+
+.manual-resume {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.manual-resume code {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-surface-low);
+  color: var(--color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow: auto;
+}
+
+.transcript-panel {
+  min-height: 320px;
+}
+
+.transcript-header {
+  margin-bottom: 14px;
+}
+
+.transcript-header h2 {
+  margin: 0;
+}
+
+.transcript-list {
+  display: grid;
+  gap: 12px;
+  max-height: min(48vh, 520px);
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.transcript-entry {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.transcript-entry-user {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.transcript-role {
+  color: rgba(25, 28, 30, 0.56);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.transcript-message {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.transcript-empty {
+  margin: 0;
+  color: rgba(25, 28, 30, 0.62);
+}
+
 @media (max-width: 980px) {
   .hero-panel,
   .content-grid,
@@ -277,6 +396,10 @@ h1 {
   }
 
   .hero-panel {
+    flex-direction: column;
+  }
+
+  .task-panel-header {
     flex-direction: column;
   }
 
