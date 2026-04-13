@@ -33,3 +33,7 @@ export function writeStopSignal(taskDir: string) {
   ensureTaskDirectories(taskDir);
   fs.writeFileSync(path.join(taskDir, 'control', 'stop'), '1');
 }
+
+export function removeTaskDirectory(taskDir: string) {
+  fs.rmSync(taskDir, { recursive: true, force: true });
+}

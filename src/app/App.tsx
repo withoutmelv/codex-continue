@@ -6,10 +6,12 @@ import { TaskConfigForm } from '../features/tasks/TaskConfigForm';
 import {
   getSessionTranscript,
   listSessions,
+  listTasks,
   startTask,
   stopTask,
 } from '../lib/electronApi';
 import {
+  type ManagedTask,
   type SessionSummary,
   type SessionTranscriptEntry,
 } from '../shared/schemas';
@@ -34,6 +36,7 @@ const copyByLocale = {
     sendCount: 'Send Count',
     perRoundTimeout: 'Per-Round Timeout',
     currentStatus: 'Current Status',
+    currentStatusDetail: 'Status Detail',
     updatedAtLabel: 'Updated',
     projectPathLabel: 'Project Path',
     manualResumeLabel: 'Manual Resume',
@@ -41,8 +44,18 @@ const copyByLocale = {
     stop: 'Stop',
     taskStates: {
       Idle: 'Idle',
+      Ready: 'Ready',
       LaunchingTerminal: 'LaunchingTerminal',
+      RunningRound: 'RunningRound',
+      RoundFinished: 'RoundFinished',
+      Completed: 'Completed',
       Stopped: 'Stopped',
+      Failed: 'Failed',
+    },
+    taskStatusDetails: {
+      timed_out: 'Round Timed Out',
+      process_error: 'Process Error',
+      runtime_error: 'Runtime Error',
     },
   },
   zh: {
@@ -62,6 +75,7 @@ const copyByLocale = {
     sendCount: '发送次数',
     perRoundTimeout: '单轮超时',
     currentStatus: '当前状态',
+    currentStatusDetail: '状态详情',
     updatedAtLabel: '更新时间',
     projectPathLabel: '项目路径',
     manualResumeLabel: '人工接管命令',
@@ -69,17 +83,45 @@ const copyByLocale = {
     stop: '停止',
     taskStates: {
       Idle: '空闲',
+      Ready: '就绪',
       LaunchingTerminal: '正在启动终端',
+      RunningRound: '正在执行单轮',
+      RoundFinished: '单轮完成',
+      Completed: '已完成',
       Stopped: '已停止',
+      Failed: '失败',
+    },
+    taskStatusDetails: {
+      timed_out: '单轮超时',
+      process_error: '进程异常',
+      runtime_error: '运行时异常',
     },
   },
 } as const;
+
+const terminalTaskStates = new Set(['Completed', 'Stopped', 'Failed']);
+
+function getStatusDetailText(
+  task: ManagedTask | null,
+  copy: (typeof copyByLocale)[Locale],
+) {
+  if (!task || task.status !== 'Failed' || !task.lastStatusText) {
+    return '';
+  }
+
+  return (
+    copy.taskStatusDetails[
+      task.lastStatusText as keyof typeof copy.taskStatusDetails
+    ] ?? task.lastStatusText
+  );
+}
 
 export default function App() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState('Idle');
+  const [taskStatusDetail, setTaskStatusDetail] = useState('');
   const [locale, setLocale] = useState<Locale>('zh');
   const [transcriptEntries, setTranscriptEntries] = useState<SessionTranscriptEntry[]>([]);
   const [fixedPrompt, setFixedPrompt] = useState('我要出去了，按照你的建议继续做');
@@ -111,12 +153,56 @@ export default function App() {
     });
   }, [selectedSession?.rolloutPath]);
 
+  useEffect(() => {
+    if (!activeTaskId) {
+      return;
+    }
+
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const syncTask = async () => {
+      const tasks = await listTasks();
+      if (cancelled) {
+        return;
+      }
+
+      const currentTask = tasks.find((task) => task.taskId === activeTaskId);
+      if (!currentTask) {
+        return;
+      }
+
+      setTaskState(currentTask.status);
+      setTaskStatusDetail(getStatusDetailText(currentTask, copy));
+
+      if (terminalTaskStates.has(currentTask.status)) {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+        setActiveTaskId(null);
+      }
+    };
+
+    void syncTask();
+    intervalId = setInterval(() => {
+      void syncTask();
+    }, 1000);
+
+    return () => {
+      cancelled = true;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [activeTaskId, copy]);
+
   async function handleStart() {
     if (!selectedSession) {
       return;
     }
 
     setTaskState('LaunchingTerminal');
+    setTaskStatusDetail('');
 
     const createdTask = await startTask({
       sessionId: selectedSession.id,
@@ -136,10 +222,11 @@ export default function App() {
 
     await stopTask(activeTaskId);
     setTaskState('Stopped');
+    setTaskStatusDetail('');
   }
 
   return (
-    <main className="app-shell azure-layout">
+    <main className="app-shell azure-layout" data-testid="app-shell">
       <section className="hero-panel compact-hero">
         <div className="hero-copy-block">
           <h1>{copy.title}</h1>
@@ -165,7 +252,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="content-grid">
+      <section className="content-grid" data-testid="content-grid">
         <SessionList
           heading={copy.sessionLibrary}
           emptyText={copy.sessionEmpty}
@@ -185,6 +272,7 @@ export default function App() {
             stateLabel={
               copy.taskStates[taskState as keyof typeof copy.taskStates] ?? taskState
             }
+            stateDetailText={taskStatusDetail}
             canStop={Boolean(activeTaskId)}
             updatedAtText={
               selectedSession ? formatSessionTimestamp(selectedSession.updatedAt) : ''

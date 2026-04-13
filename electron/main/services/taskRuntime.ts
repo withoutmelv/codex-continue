@@ -6,7 +6,11 @@ import { promisify } from 'node:util';
 import { app } from 'electron';
 import { createTerminalAdapter } from '../terminals/factory';
 import { parseCodexRound } from './codexEventParser';
-import { writeRoundRequest, writeStopSignal } from './taskDirectories';
+import {
+  removeTaskDirectory,
+  writeRoundRequest,
+  writeStopSignal,
+} from './taskDirectories';
 import { TaskOrchestrator } from './taskOrchestrator';
 import { TaskStore } from './taskStore';
 
@@ -21,13 +25,17 @@ type StartTaskInput = {
   perRoundTimeoutMs: number;
 };
 
-export class TaskRuntime {
-  private readonly activeOrchestrators = new Map<string, TaskOrchestrator>();
+type TaskRuntimeDeps = {
+  createTaskOrchestrator: (
+    input: StartTaskInput,
+    taskDir: string,
+    store: TaskStore,
+  ) => TaskOrchestrator;
+  removeTaskDirectory: (taskDir: string) => void;
+};
 
-  constructor(private readonly store: TaskStore) {}
-
-  async runTask(input: StartTaskInput) {
-    const taskDir = path.join(os.tmpdir(), 'codex-continue', input.taskId);
+const defaultDeps: TaskRuntimeDeps = {
+  createTaskOrchestrator: (input, taskDir, store) => {
     const adapter = createTerminalAdapter();
     const appRoot = process.cwd();
     const runnerEntry = app.isPackaged
@@ -42,10 +50,10 @@ export class TaskRuntime {
       runnerCommand,
     });
 
-    const orchestrator = new TaskOrchestrator({
+    return new TaskOrchestrator({
       launchTerminal: async () => {
         await execFileAsync(launchSpec.command, launchSpec.args);
-        this.store.setTerminalBinding(input.taskId, taskDir);
+        store.setTerminalBinding(input.taskId, taskDir);
         return { terminalBinding: taskDir };
       },
       enqueueRound: async ({ roundNumber, terminalBinding, ...roundInput }) => {
@@ -64,6 +72,8 @@ export class TaskRuntime {
 
         const raw = JSON.parse(fs.readFileSync(resultPath, 'utf8')) as {
           exitCode: number;
+          timedOut?: boolean;
+          stopped?: boolean;
           durationMs: number;
           output: string;
         };
@@ -71,32 +81,57 @@ export class TaskRuntime {
         return parseCodexRound({
           lines: raw.output.split(/\r?\n/).filter(Boolean),
           exitCode: raw.exitCode,
+          timedOut: raw.timedOut,
+          stopped: raw.stopped,
           durationMs: raw.durationMs,
         });
       },
       updateTaskStatus: async (taskId, status) => {
-        this.store.updateTaskStatus(taskId, status);
+        store.updateTaskStatus(taskId, status);
       },
       recordRound: async (payload) => {
-        this.store.recordRound(payload);
+        store.recordRound(payload);
       },
       markCompleted: async (taskId) => {
-        this.store.markCompleted(taskId);
+        store.markCompleted(taskId);
       },
       markFailed: async (taskId, reason) => {
-        this.store.markFailed(taskId, reason);
+        store.markFailed(taskId, reason);
       },
       markStopped: async (taskId) => {
-        this.store.markStopped(taskId);
+        store.markStopped(taskId);
       },
     });
+  },
+  removeTaskDirectory,
+};
+
+export class TaskRuntime {
+  private readonly activeOrchestrators = new Map<string, TaskOrchestrator>();
+
+  constructor(
+    private readonly store: TaskStore,
+    private readonly deps: TaskRuntimeDeps = defaultDeps,
+  ) {}
+
+  async runTask(input: StartTaskInput) {
+    const taskDir = path.join(os.tmpdir(), 'codex-continue', input.taskId);
+    const orchestrator = this.deps.createTaskOrchestrator(input, taskDir, this.store);
 
     this.activeOrchestrators.set(input.taskId, orchestrator);
 
     try {
       await orchestrator.run(input);
+    } catch (error) {
+      this.store.markFailed(input.taskId, 'runtime_error');
+      throw error;
     } finally {
       this.activeOrchestrators.delete(input.taskId);
+      try {
+        this.deps.removeTaskDirectory(taskDir);
+      } catch (cleanupError) {
+        console.error(`Failed to clean up managed task dir ${taskDir}`, cleanupError);
+      }
     }
   }
 

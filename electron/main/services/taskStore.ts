@@ -226,7 +226,6 @@ export class TaskStore {
           started_at as startedAt,
           updated_at as updatedAt
         from managed_tasks
-        where status in ('LaunchingTerminal', 'RunningRound', 'RoundFinished')
         order by updated_at desc
       `)
       .all();

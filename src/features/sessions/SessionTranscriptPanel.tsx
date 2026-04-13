@@ -8,11 +8,11 @@ type SessionTranscriptPanelProps = {
 
 export function SessionTranscriptPanel(props: SessionTranscriptPanelProps) {
   return (
-    <section className="surface-card transcript-panel">
+    <section className="surface-card transcript-panel" data-testid="transcript-panel">
       <div className="transcript-header">
         <h2>{props.heading}</h2>
       </div>
-      <div className="transcript-list">
+      <div className="transcript-list" data-testid="transcript-scroll-region">
         {props.entries.length === 0 ? (
           <p className="transcript-empty">{props.emptyText}</p>
         ) : (

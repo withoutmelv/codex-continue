@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from '../../src/app/App';
+import * as electronApi from '../../src/lib/electronApi';
 
 vi.mock('../../src/lib/electronApi', () => ({
   listSessions: vi.fn().mockResolvedValue({
@@ -31,9 +32,17 @@ vi.mock('../../src/lib/electronApi', () => ({
   }),
   startTask: vi.fn().mockResolvedValue({ taskId: 'task-1' }),
   stopTask: vi.fn().mockResolvedValue(undefined),
+  listTasks: vi.fn().mockResolvedValue([]),
 }));
 
 describe('managed task flow', () => {
+  const listTasksMock = vi.mocked(electronApi.listTasks);
+
+  beforeEach(() => {
+    listTasksMock.mockReset();
+    listTasksMock.mockResolvedValue([]);
+  });
+
   it('loads sessions, shows details, and starts a managed task', async () => {
     render(<App />);
 
@@ -53,5 +62,59 @@ describe('managed task flow', () => {
     await waitFor(() => {
       expect(screen.getByText(/正在启动终端/i)).toBeInTheDocument();
     });
+  });
+
+  it('shows a dedicated timeout status detail when a round times out', async () => {
+    listTasksMock
+      .mockResolvedValueOnce([
+        {
+          taskId: 'task-1',
+          sessionId: '019d826a',
+          cwd: '/repo',
+          fixedPrompt: '我要出去了，按照你的建议继续做',
+          targetRounds: 8,
+          completedRounds: 0,
+          perRoundTimeoutMs: 900_000,
+          terminalBinding: '/tmp/task-1',
+          status: 'RunningRound',
+          lastExitCode: null,
+          lastStatusText: null,
+          startedAt: 1776069276,
+          updatedAt: 1776069276,
+        },
+      ])
+      .mockResolvedValue([
+        {
+          taskId: 'task-1',
+          sessionId: '019d826a',
+          cwd: '/repo',
+          fixedPrompt: '我要出去了，按照你的建议继续做',
+          targetRounds: 8,
+          completedRounds: 0,
+          perRoundTimeoutMs: 900_000,
+          terminalBinding: '/tmp/task-1',
+          status: 'Failed',
+          lastExitCode: 1,
+          lastStatusText: 'timed_out',
+          startedAt: 1776069276,
+          updatedAt: 1776069276,
+        },
+      ]);
+
+    render(<App />);
+
+    await screen.findByText(/^repo$/i);
+    fireEvent.click(screen.getByRole('button', { name: /自动托管/i }));
+
+    await waitFor(() => {
+      expect(listTasksMock).toHaveBeenCalled();
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/单轮超时/i)).toBeInTheDocument();
+      },
+      { timeout: 2500 },
+    );
   });
 });
