@@ -64,6 +64,10 @@ export const managedTaskRoundSchema = z.object({
 });
 
 export const listTasksResponseSchema = z.array(managedTaskSchema);
+export const taskSnapshotResponseSchema = z.object({
+  task: managedTaskSchema,
+  rounds: z.array(managedTaskRoundSchema),
+});
 
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
 export type ListSessionsResponse = z.infer<typeof listSessionsResponseSchema>;
@@ -73,5 +77,6 @@ export type GetSessionTranscriptResponse = z.infer<
   typeof getSessionTranscriptResponseSchema
 >;
 export type ListTasksResponse = z.infer<typeof listTasksResponseSchema>;
+export type TaskSnapshotResponse = z.infer<typeof taskSnapshotResponseSchema>;
 export type ManagedTask = z.infer<typeof managedTaskSchema>;
 export type ManagedTaskRound = z.infer<typeof managedTaskRoundSchema>;

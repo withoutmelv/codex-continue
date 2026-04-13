@@ -32,11 +32,13 @@ void app.whenReady().then(() => {
     runTask: async (input) => taskRuntime.runTask(input),
     stopTask: async (taskId) => taskRuntime.stopTask(taskId),
     listActiveTasks: async () => taskStore.listActiveTasks(),
+    getTaskSnapshot: async (taskId) => taskStore.getTaskSnapshot(taskId),
   });
 
   ipcMain.handle('tasks:start', (_event, input) => taskHandlers.start(input));
   ipcMain.handle('tasks:stop', (_event, taskId) => taskHandlers.stop(taskId));
   ipcMain.handle('tasks:list', () => taskHandlers.list());
+  ipcMain.handle('tasks:getSnapshot', (_event, taskId) => taskHandlers.getSnapshot(taskId));
 
   createWindow();
 });

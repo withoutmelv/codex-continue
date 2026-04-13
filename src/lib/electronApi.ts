@@ -3,6 +3,7 @@ import {
   listSessionsResponseSchema,
   listTasksResponseSchema,
   startTaskResponseSchema,
+  taskSnapshotResponseSchema,
 } from '../shared/schemas';
 
 declare global {
@@ -13,6 +14,7 @@ declare global {
       startTask: (input: unknown) => Promise<unknown>;
       stopTask: (taskId: string) => Promise<unknown>;
       listTasks: () => Promise<unknown>;
+      getTaskSnapshot: (taskId: string) => Promise<unknown>;
     };
   }
 }
@@ -66,4 +68,13 @@ export async function listTasks() {
   }
 
   return listTasksResponseSchema.parse(await api.listTasks());
+}
+
+export async function getTaskSnapshot(taskId: string) {
+  const api = getElectronApi();
+  if (!api) {
+    throw new Error('electronApi.getTaskSnapshot is unavailable');
+  }
+
+  return taskSnapshotResponseSchema.parse(await api.getTaskSnapshot(taskId));
 }

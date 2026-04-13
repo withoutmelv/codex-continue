@@ -4,7 +4,7 @@ import path from 'node:path';
 import { TaskStore } from '../../electron/main/services/taskStore';
 
 describe('TaskStore', () => {
-  it('creates a managed task and stores round results', () => {
+  it('returns one task summary plus ordered round details', () => {
     const dbPath = path.join(
       fs.mkdtempSync(path.join(os.tmpdir(), 'codex-task-store-')),
       'app.sqlite',
@@ -21,15 +21,24 @@ describe('TaskStore', () => {
 
     store.recordRound({
       taskId: task.taskId,
+      roundNumber: 2,
+      exitCode: 0,
+      resultType: 'completed',
+      lastMessage: 'done',
+      durationMs: 2_000,
+    });
+
+    store.recordRound({
+      taskId: task.taskId,
       roundNumber: 1,
       exitCode: 0,
-      resultType: 'STATUS: RETRY',
-      lastMessage: 'STATUS: RETRY',
-      durationMs: 1_234,
+      resultType: 'completed',
+      lastMessage: 'working',
+      durationMs: 1_000,
     });
 
     const snapshot = store.getTaskSnapshot(task.taskId);
-    expect(snapshot.task.completedRounds).toBe(1);
-    expect(snapshot.rounds).toHaveLength(1);
+    expect(snapshot.task.taskId).toBe(task.taskId);
+    expect(snapshot.rounds.map((round) => round.roundNumber)).toEqual([1, 2]);
   });
 });

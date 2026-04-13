@@ -11,6 +11,7 @@ type TaskHandlersDeps = {
   runTask: (input: StartTaskInput & { taskId: string }) => Promise<void>;
   stopTask: (taskId: string) => Promise<void>;
   listActiveTasks: () => Promise<unknown[]>;
+  getTaskSnapshot: (taskId: string) => Promise<unknown>;
 };
 
 export function createTaskHandlers(deps: TaskHandlersDeps) {
@@ -24,5 +25,6 @@ export function createTaskHandlers(deps: TaskHandlersDeps) {
     },
     stop: async (taskId: string) => deps.stopTask(taskId),
     list: async () => deps.listActiveTasks(),
+    getSnapshot: async (taskId: string) => deps.getTaskSnapshot(taskId),
   };
 }

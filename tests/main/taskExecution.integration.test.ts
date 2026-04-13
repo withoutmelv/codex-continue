@@ -17,6 +17,10 @@ describe('task execution integration', () => {
         calls.push('stopTask');
       },
       listActiveTasks: async () => [],
+      getTaskSnapshot: async () => ({
+        task: { taskId: 'task-1', status: 'Completed' },
+        rounds: [],
+      }),
     });
 
     const pending = Symbol('pending');
@@ -40,5 +44,22 @@ describe('task execution integration', () => {
     if (finishRunTask) {
       finishRunTask();
     }
+  });
+
+  it('returns a task snapshot through the handler contract', async () => {
+    const snapshot = {
+      task: { taskId: 'task-1', status: 'Completed' },
+      rounds: [{ taskId: 'task-1', roundNumber: 1 }],
+    };
+
+    const handlers = createTaskHandlers({
+      createTask: async () => ({ taskId: 'task-1' }),
+      runTask: async () => undefined,
+      stopTask: async () => undefined,
+      listActiveTasks: async () => [],
+      getTaskSnapshot: async () => snapshot,
+    });
+
+    await expect(handlers.getSnapshot('task-1')).resolves.toEqual(snapshot);
   });
 });
