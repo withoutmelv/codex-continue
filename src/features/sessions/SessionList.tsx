@@ -1,5 +1,6 @@
 import { type SessionSummary } from '../../shared/schemas';
 import { useMemo, useState } from 'react';
+import { formatSessionTimestamp } from './formatSessionTimestamp';
 
 function getProjectName(cwd: string) {
   const segments = cwd.split(/[\\/]/).filter(Boolean);
@@ -91,10 +92,7 @@ export function SessionList({
                   {getProjectName(session.cwd)}
                 </strong>
                 <span className="session-meta">
-                  {new Date(session.updatedAt).toLocaleDateString(
-                    locale === 'zh' ? 'zh-CN' : 'en-US',
-                    { month: 'numeric', day: 'numeric' },
-                  )}
+                  {formatSessionTimestamp(session.updatedAt)}
                 </span>
               </div>
               <small className="session-id-text">{session.id.slice(0, 8)}...</small>
