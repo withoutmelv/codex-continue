@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { buildRoundShellCommand } from './buildRoundShellCommand';
 
 const taskDir = process.argv[process.argv.indexOf('--task-dir') + 1];
 
@@ -30,47 +31,34 @@ async function runLoop() {
         timeoutMs: number;
       };
 
-      const args = [
-        'exec',
-        'resume',
-        request.sessionId,
-        request.fixedPrompt,
-        '--json',
-        '--skip-git-repo-check',
-      ];
       const startedAt = Date.now();
-      const child = spawn('codex', args, {
+      const outputFile = path.join(taskDir, 'results', `${request.roundNumber}.output.log`);
+      const shellCommand = buildRoundShellCommand({
+        sessionId: request.sessionId,
         cwd: request.cwd,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        fixedPrompt: request.fixedPrompt,
+        outputFile,
+      });
+      const child = spawn('/bin/bash', ['-lc', shellCommand], {
+        cwd: request.cwd,
+        stdio: 'inherit',
+        detached: true,
       });
 
-      let combined = '';
       let timedOut = false;
       let stopped = false;
 
       const timeoutHandle = setTimeout(() => {
         timedOut = true;
-        child.kill('SIGTERM');
+        process.kill(-child.pid!, 'SIGTERM');
       }, request.timeoutMs);
 
       const stopHandle = setInterval(() => {
         if (fs.existsSync(path.join(taskDir, 'control', 'stop'))) {
           stopped = true;
-          child.kill('SIGTERM');
+          process.kill(-child.pid!, 'SIGTERM');
         }
       }, 200);
-
-      child.stdout.on('data', (chunk) => {
-        const text = chunk.toString();
-        process.stdout.write(text);
-        combined += text;
-      });
-
-      child.stderr.on('data', (chunk) => {
-        const text = chunk.toString();
-        process.stderr.write(text);
-        combined += text;
-      });
 
       const exitCode = await new Promise<number>((resolve) =>
         child.on('close', (code) => resolve(code ?? 1)),
@@ -78,6 +66,9 @@ async function runLoop() {
 
       clearTimeout(timeoutHandle);
       clearInterval(stopHandle);
+      const combined = fs.existsSync(outputFile)
+        ? fs.readFileSync(outputFile, 'utf8')
+        : '';
 
       fs.writeFileSync(
         path.join(taskDir, 'results', `${request.roundNumber}.json`),
