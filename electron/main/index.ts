@@ -5,27 +5,20 @@ import { createTaskHandlers } from './ipc/tasks';
 import { registerSessionHandlers } from './ipc/sessions';
 import { TaskRuntime } from './services/taskRuntime';
 import { TaskStore } from './services/taskStore';
+import { createMainWindow, resolveRendererEntry } from './window';
 
 const isDev = !app.isPackaged;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function createWindow() {
-  const window = new BrowserWindow({
-    width: 1440,
-    height: 960,
-    webPreferences: {
-      preload: isDev
-        ? path.join(__dirname, '../preload/index.js')
-        : path.join(__dirname, 'index.mjs'),
-    },
-  });
+  const window = createMainWindow(__dirname, isDev);
 
   if (isDev) {
-    void window.loadURL('http://localhost:5173');
+    void window.loadURL(resolveRendererEntry(__dirname, true));
     window.webContents.openDevTools({ mode: 'detach' });
   } else {
-    void window.loadFile(path.join(__dirname, '../../dist/index.html'));
+    void window.loadFile(resolveRendererEntry(__dirname, false));
   }
 }
 
