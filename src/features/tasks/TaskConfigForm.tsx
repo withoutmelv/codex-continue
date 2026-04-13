@@ -4,9 +4,12 @@ type TaskConfigFormProps = {
     fixedPrompt: string;
     sendCount: string;
     perRoundTimeout: string;
+    currentStatus: string;
     autoHost: string;
-    refreshSessions: string;
+    stop: string;
   };
+  stateLabel: string;
+  canStop: boolean;
   fixedPrompt: string;
   onFixedPromptChange: (value: string) => void;
   sendCount: number;
@@ -14,13 +17,17 @@ type TaskConfigFormProps = {
   timeoutMinutes: number;
   onTimeoutMinutesChange: (value: number) => void;
   onStart: () => void;
-  onRefreshSessions: () => void;
+  onStop: () => void;
 };
 
 export function TaskConfigForm(props: TaskConfigFormProps) {
   return (
     <section className="surface-card task-control-panel">
       <h2>{props.copy.managedTaskControl}</h2>
+      <div className="task-status-inline">
+        <span className="status-label">{props.copy.currentStatus}</span>
+        <strong className="status-value">{props.stateLabel}</strong>
+      </div>
       <label className="field">
         <span>{props.copy.fixedPrompt}</span>
         <textarea
@@ -52,8 +59,12 @@ export function TaskConfigForm(props: TaskConfigFormProps) {
         <button className="primary-button" onClick={props.onStart}>
           {props.copy.autoHost}
         </button>
-        <button className="secondary-button" onClick={props.onRefreshSessions}>
-          {props.copy.refreshSessions}
+        <button
+          className="secondary-button"
+          disabled={!props.canStop}
+          onClick={props.onStop}
+        >
+          {props.copy.stop}
         </button>
       </div>
     </section>

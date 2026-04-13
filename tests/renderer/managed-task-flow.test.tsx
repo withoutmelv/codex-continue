@@ -24,14 +24,14 @@ describe('managed task flow', () => {
 
     await screen.findByText(/continue desktop product planning/i);
 
-    fireEvent.change(screen.getByLabelText(/send count/i), {
+    fireEvent.change(screen.getByLabelText(/发送次数/i), {
       target: { value: '4' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /auto host/i }));
+    fireEvent.click(screen.getByRole('button', { name: /自动托管/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/launchingterminal/i)).toBeInTheDocument();
+      expect(screen.getByText(/正在启动终端/i)).toBeInTheDocument();
     });
   });
 });

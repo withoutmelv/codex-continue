@@ -6,7 +6,7 @@ describe('App shell', () => {
     render(<App />);
 
     expect(
-      await screen.findByRole('heading', { name: /codex continue desktop/i }),
+      await screen.findByRole('heading', { name: /codex continue 桌面端/i }),
     ).toBeInTheDocument();
   });
 });

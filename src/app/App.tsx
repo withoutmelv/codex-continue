@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TaskConfigForm } from '../features/tasks/TaskConfigForm';
-import { TaskStatusPanel } from '../features/tasks/TaskStatusPanel';
 import { SessionList } from '../features/sessions/SessionList';
 import {
   listSessions,
-  listTasks,
   startTask,
   stopTask,
 } from '../lib/electronApi';
@@ -16,20 +14,17 @@ const copyByLocale = {
   en: {
     title: 'Codex Continue Desktop',
     subtitle:
-      'Select an existing Codex session, configure the takeover prompt, and keep execution visible in one native terminal window.',
+      'Choose a Codex session from the sidebar and manage the hosted workflow from one focused control panel.',
     sessionLibrary: 'Session Library',
     sessionEmpty: 'No sessions found.',
+    refreshSessions: 'Refresh Sessions',
     managedTaskControl: 'Managed Task Control',
     fixedPrompt: 'Fixed Prompt',
     sendCount: 'Send Count',
     perRoundTimeout: 'Per-Round Timeout',
+    currentStatus: 'Current Status',
     autoHost: 'Auto Host',
-    refreshSessions: 'Refresh Sessions',
-    taskStatus: 'Task Status',
-    nativeTerminalWindow: 'Native Terminal Window',
     stop: 'Stop',
-    idleTerminal: '$ idle',
-    taskRunning: (taskId: string) => `$ task ${taskId} running in native terminal`,
     taskStates: {
       Idle: 'Idle',
       LaunchingTerminal: 'LaunchingTerminal',
@@ -39,20 +34,17 @@ const copyByLocale = {
   zh: {
     title: 'Codex Continue 桌面端',
     subtitle:
-      '选择一个已有的 Codex 会话，配置自动托管指令，并在同一个系统终端窗口里持续查看执行输出。',
+      '在侧边栏选择会话，在右侧主控面板里完成自动托管设置和状态控制。',
     sessionLibrary: '会话列表',
     sessionEmpty: '当前没有可用会话。',
+    refreshSessions: '刷新会话',
     managedTaskControl: '自动托管设置',
     fixedPrompt: '固定指令',
     sendCount: '发送次数',
     perRoundTimeout: '单轮超时',
+    currentStatus: '当前状态',
     autoHost: '自动托管',
-    refreshSessions: '刷新会话',
-    taskStatus: '任务状态',
-    nativeTerminalWindow: '原生终端窗口',
     stop: '停止',
-    idleTerminal: '$ 空闲中',
-    taskRunning: (taskId: string) => `$ 任务 ${taskId} 正在原生终端中运行`,
     taskStates: {
       Idle: '空闲',
       LaunchingTerminal: '正在启动终端',
@@ -66,7 +58,7 @@ export default function App() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [taskState, setTaskState] = useState('Idle');
-  const [locale, setLocale] = useState<Locale>('en');
+  const [locale, setLocale] = useState<Locale>('zh');
   const [fixedPrompt, setFixedPrompt] = useState('我要出去了，按照你的建议继续做');
   const [sendCount, setSendCount] = useState(8);
   const [timeoutMinutes, setTimeoutMinutes] = useState(15);
@@ -83,7 +75,6 @@ export default function App() {
 
   useEffect(() => {
     void refreshSessions();
-    void listTasks();
   }, []);
 
   async function handleStart() {
@@ -144,14 +135,20 @@ export default function App() {
         <SessionList
           heading={copy.sessionLibrary}
           emptyText={copy.sessionEmpty}
+          refreshLabel={copy.refreshSessions}
           locale={locale}
           sessions={sessions}
           selectedSessionId={selectedSessionId}
           onSelect={setSelectedSessionId}
+          onRefresh={refreshSessions}
         />
         <div className="main-stack" data-testid="task-workspace">
           <TaskConfigForm
             copy={copy}
+            stateLabel={
+              copy.taskStates[taskState as keyof typeof copy.taskStates] ?? taskState
+            }
+            canStop={Boolean(activeTaskId)}
             fixedPrompt={fixedPrompt}
             onFixedPromptChange={setFixedPrompt}
             sendCount={sendCount}
@@ -159,12 +156,6 @@ export default function App() {
             timeoutMinutes={timeoutMinutes}
             onTimeoutMinutesChange={setTimeoutMinutes}
             onStart={handleStart}
-            onRefreshSessions={refreshSessions}
-          />
-          <TaskStatusPanel
-            copy={copy}
-            stateLabel={copy.taskStates[taskState as keyof typeof copy.taskStates] ?? taskState}
-            activeTaskId={activeTaskId}
             onStop={handleStop}
           />
         </div>
