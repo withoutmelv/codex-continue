@@ -29,15 +29,16 @@ export class TaskRuntime {
   async runTask(input: StartTaskInput) {
     const taskDir = path.join(os.tmpdir(), 'codex-continue', input.taskId);
     const adapter = createTerminalAdapter();
+    const appRoot = process.cwd();
     const runnerEntry = app.isPackaged
       ? path.join(process.resourcesPath, 'dist-electron', 'runner', 'terminalRunner.js')
-      : path.join(process.cwd(), 'electron', 'runner', 'terminalRunner.ts');
+      : path.join(appRoot, 'electron', 'runner', 'terminalRunner.ts');
     const runnerCommand = app.isPackaged
       ? `node "${runnerEntry}" --task-dir "${taskDir}"`
       : `pnpm exec tsx "${runnerEntry}" --task-dir "${taskDir}"`;
     const launchSpec = adapter.buildLaunchCommand({
       taskId: input.taskId,
-      cwd: input.cwd,
+      cwd: appRoot,
       runnerCommand,
     });
 

@@ -30,7 +30,14 @@ async function runLoop() {
         timeoutMs: number;
       };
 
-      const args = ['exec', 'resume', request.sessionId, request.fixedPrompt, '--json'];
+      const args = [
+        'exec',
+        'resume',
+        request.sessionId,
+        request.fixedPrompt,
+        '--json',
+        '--skip-git-repo-check',
+      ];
       const startedAt = Date.now();
       const child = spawn('codex', args, {
         cwd: request.cwd,
