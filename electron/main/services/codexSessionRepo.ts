@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
 import os from 'node:os';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { type SessionSummary } from '../../../src/shared/schemas';
 
 type ThreadRow = {
@@ -17,7 +17,7 @@ export class CodexSessionRepo {
   ) {}
 
   listSessions(): SessionSummary[] {
-    const db = new Database(this.dbPath, { readonly: true });
+    const db = new DatabaseSync(this.dbPath);
     const rows = db
       .prepare(
         `

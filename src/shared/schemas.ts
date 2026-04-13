@@ -12,6 +12,10 @@ export const listSessionsResponseSchema = z.object({
   sessions: z.array(sessionSummarySchema),
 });
 
+export const startTaskResponseSchema = z.object({
+  taskId: z.string(),
+});
+
 export const managedTaskSchema = z.object({
   taskId: z.string(),
   sessionId: z.string(),
@@ -50,5 +54,6 @@ export const managedTaskRoundSchema = z.object({
 
 export type SessionSummary = z.infer<typeof sessionSummarySchema>;
 export type ListSessionsResponse = z.infer<typeof listSessionsResponseSchema>;
+export type StartTaskResponse = z.infer<typeof startTaskResponseSchema>;
 export type ManagedTask = z.infer<typeof managedTaskSchema>;
 export type ManagedTaskRound = z.infer<typeof managedTaskRoundSchema>;

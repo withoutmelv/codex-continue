@@ -1,18 +1,23 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createTaskHandlers } from './ipc/tasks';
 import { registerSessionHandlers } from './ipc/sessions';
 import { TaskRuntime } from './services/taskRuntime';
 import { TaskStore } from './services/taskStore';
 
 const isDev = !app.isPackaged;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function createWindow() {
   const window = new BrowserWindow({
     width: 1440,
     height: 960,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: isDev
+        ? path.join(__dirname, '../preload/index.js')
+        : path.join(__dirname, 'index.mjs'),
     },
   });
 

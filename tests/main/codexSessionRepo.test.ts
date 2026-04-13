@@ -1,7 +1,7 @@
-import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { CodexSessionRepo } from '../../electron/main/services/codexSessionRepo';
 
 describe('CodexSessionRepo', () => {
@@ -10,7 +10,7 @@ describe('CodexSessionRepo', () => {
       fs.mkdtempSync(path.join(os.tmpdir(), 'codex-sessions-')),
       'state.sqlite',
     );
-    const db = new Database(dbPath);
+    const db = new DatabaseSync(dbPath);
 
     db.exec(`
       create table threads (

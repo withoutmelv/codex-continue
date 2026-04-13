@@ -1,5 +1,5 @@
-import Database from 'better-sqlite3';
 import crypto from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
 import {
   type ManagedTask,
   type ManagedTaskRound,
@@ -14,10 +14,10 @@ type CreateTaskInput = {
 };
 
 export class TaskStore {
-  private readonly db: Database.Database;
+  private readonly db: DatabaseSync;
 
   constructor(dbPath: string) {
-    this.db = new Database(dbPath);
+    this.db = new DatabaseSync(dbPath);
     this.db.exec(`
       create table if not exists managed_tasks (
         task_id text primary key,

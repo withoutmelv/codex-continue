@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react';
 import App from '../../src/app/App';
 
 describe('MVP layout', () => {
-  it('renders the session list and task controls', () => {
+  it('renders the session list and task controls', async () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: /session library/i }),
+      await screen.findByRole('heading', { name: /session library/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /auto host/i }),
